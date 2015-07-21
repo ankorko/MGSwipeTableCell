@@ -75,6 +75,7 @@
     [button setImage:icon forState:UIControlStateNormal];
     button.callback = callback;
     [button setEdgeInsets:insets];
+    [button centerIconOverText];
     return button;
 }
 
