@@ -516,14 +516,14 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
         case MGSwipeEasingFunctionQuadOut: easingFunction = mgEaseOutQuad;;break;
         case MGSwipeEasingFunctionQuadInOut: easingFunction = mgEaseInOutQuad;break;
         case MGSwipeEasingFunctionCubicIn: easingFunction = mgEaseInCubic;break;
-        default:
         case MGSwipeEasingFunctionCubicOut: easingFunction = mgEaseOutCubic;break;
         case MGSwipeEasingFunctionCubicInOut: easingFunction = mgEaseInOutCubic;break;
         case MGSwipeEasingFunctionBounceIn: easingFunction = mgEaseInBounce;break;
         case MGSwipeEasingFunctionBounceOut: easingFunction = mgEaseOutBounce;break;
         case MGSwipeEasingFunctionBounceInOut: easingFunction = mgEaseInOutBounce;break;
+        default: easingFunction = mgEaseOutBounce;break;
+
     }
-    easingFunction = mgEaseOutBounce;
     return (*easingFunction)(t, from, to - from);
 }
 
