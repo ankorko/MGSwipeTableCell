@@ -503,6 +503,7 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
     return self;
 }
 
+
 -(CGFloat) value:(CGFloat)elapsed duration:(CGFloat)duration from:(CGFloat)from to:(CGFloat)to
 {
     CGFloat t = MIN(elapsed/duration, 1.0f);
@@ -567,7 +568,7 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        [self initViews:YES];
+        [self initViews];
     }
     return self;
 }
@@ -575,7 +576,7 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
 - (id)initWithCoder:(NSCoder*)aDecoder
 {
     if(self = [super initWithCoder:aDecoder]) {
-        [self initViews:YES];
+        [self initViews];
     }
     return self;
 }
@@ -583,29 +584,31 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
 -(void) awakeFromNib
 {
     if (!_panRecognizer) {
-        [self initViews:YES];
+        [self initViews];
     }
 }
 
 -(void) dealloc
 {
+    if (_panRecognizer) {
+        _panRecognizer.delegate = nil;
+        [self removeGestureRecognizer:_panRecognizer];
+        _panRecognizer = nil;
+    }
     [self hideSwipeOverlayIfNeeded];
 }
 
--(void) initViews: (BOOL) cleanButtons
+-(void) initViews
 {
-    if (cleanButtons) {
-        _leftButtons = [NSArray array];
-        _rightButtons = [NSArray array];
-        _leftSwipeSettings = [[MGSwipeSettings alloc] init];
-        _rightSwipeSettings = [[MGSwipeSettings alloc] init];
-        _leftExpansion = [[MGSwipeExpansionSettings alloc] init];
-        _rightExpansion = [[MGSwipeExpansionSettings alloc] init];
+    
+    _leftButtons = nil;
+    _rightButtons = nil;
+   
+    if (!_panRecognizer) {
+        _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panHandler:)];
+        [self addGestureRecognizer:_panRecognizer];
+        _panRecognizer.delegate = self;
     }
-    _animationData = [[MGSwipeAnimationData alloc] init];
-    _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panHandler:)];
-    [self addGestureRecognizer:_panRecognizer];
-    _panRecognizer.delegate = self;
     _activeExpansion = nil;
     _previusHiddenViews = [NSMutableSet set];
     _swipeState = MGSwipeStateNone;
@@ -626,11 +629,6 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
         _swipeOverlay = nil;
     }
     _leftView = _rightView = nil;
-    if (_panRecognizer) {
-        _panRecognizer.delegate = nil;
-        [self removeGestureRecognizer:_panRecognizer];
-        _panRecognizer = nil;
-    }
 }
 
 -(UIView *) swipeContentView
@@ -663,11 +661,16 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
 
 -(void) fetchButtonsIfNeeded
 {
+    _animationData = [[MGSwipeAnimationData alloc] init];
     if (_leftButtons.count == 0 && _delegate && [_delegate respondsToSelector:@selector(swipeTableCell:swipeButtonsForDirection:swipeSettings:expansionSettings:)]) {
+        _leftSwipeSettings = [[MGSwipeSettings alloc] init];
+        _leftExpansion = [[MGSwipeExpansionSettings alloc] init];
         _leftButtons = [_delegate swipeTableCell:self swipeButtonsForDirection:MGSwipeDirectionLeftToRight swipeSettings:_leftSwipeSettings expansionSettings:_leftExpansion];
     }
     if (_rightButtons.count == 0 && _delegate && [_delegate respondsToSelector:@selector(swipeTableCell:swipeButtonsForDirection:swipeSettings:expansionSettings:)]) {
         _rightButtons = [_delegate swipeTableCell:self swipeButtonsForDirection:MGSwipeDirectionRightToLeft swipeSettings:_rightSwipeSettings expansionSettings:_rightExpansion];
+        _rightSwipeSettings = [[MGSwipeSettings alloc] init];
+        _rightExpansion = [[MGSwipeExpansionSettings alloc] init];
     }
 }
 
@@ -821,8 +824,7 @@ static inline CGFloat mgEaseOutElastic(CGFloat t, CGFloat b, CGFloat c)  {
         _triggerStateChanges = YES;
         [self updateState:MGSwipeStateNone];
     }
-    BOOL cleanButtons = _delegate && [_delegate respondsToSelector:@selector(swipeTableCell:swipeButtonsForDirection:swipeSettings:expansionSettings:)];
-    [self initViews:cleanButtons];
+    [self initViews];
 }
 
 -(void) setEditing:(BOOL)editing animated:(BOOL)animated
